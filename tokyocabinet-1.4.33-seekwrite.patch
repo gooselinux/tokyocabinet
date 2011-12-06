@@ -1,0 +1,18 @@
+diff -up tokyocabinet-1.4.33/tchdb.c.seekwrite tokyocabinet-1.4.33/tchdb.c
+--- tokyocabinet-1.4.33/tchdb.c.seekwrite	2010-03-12 14:44:21.057033570 +0100
++++ tokyocabinet-1.4.33/tchdb.c	2010-03-12 14:45:44.910033803 +0100
+@@ -1876,6 +1876,14 @@ static bool tchdbseekwrite(TCHDB *hdb, o
+     return true;
+   }
+   if(!TCUBCACHE && off < hdb->xmsiz){
++    if(end >= hdb->fsiz && end >= hdb->xfsiz){
++      uint64_t xfsiz = end + HDBXFSIZINC;
++      if(ftruncate(hdb->fd, xfsiz) == -1){
++        tchdbsetecode(hdb, TCETRUNC, __FILE__, __LINE__, __func__);
++        return false;
++      }
++      hdb->xfsiz = xfsiz;
++    }
+     int head = hdb->xmsiz - off;
+     memcpy(hdb->map + off, buf, head);
+     off += head;

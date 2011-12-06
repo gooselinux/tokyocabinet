@@ -1,0 +1,129 @@
+diff -up tokyocabinet-1.4.33/tctdb.c.metasearch tokyocabinet-1.4.33/tctdb.c
+--- tokyocabinet-1.4.33/tctdb.c.metasearch	2009-09-04 11:34:50.000000000 +0200
++++ tokyocabinet-1.4.33/tctdb.c	2010-03-12 15:43:50.571033126 +0100
+@@ -1029,7 +1029,6 @@ const char *tctdbqryhint(TDBQRY *qry){
+   return tcxstrptr(qry->hint);
+ }
+ 
+-
+ /* Retrieve records with multiple query objects and get the set of the result. */
+ TCLIST *tctdbmetasearch(TDBQRY **qrys, int num, int type){
+   assert(qrys && num >= 0);
+@@ -1043,7 +1042,13 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+     for(int i = 0; i < num; i++){
+       TDBQRY *qry = qrys[i];
+       TCTDB *tdb = qry->tdb;
++      int omax = qry->max;
++      int oskip = qry->skip;
++      if(qry->max < INT_MAX - qry->skip) qry->max += qry->skip;
++      qry->skip = 0;
+       TCLIST *res = tctdbqrysearch(qry);
++      qry->max = omax;
++      qry->skip = oskip;
+       int rnum = TCLISTNUM(res);
+       for(int j = 0; j < rnum; j++){
+         const char *pkbuf;
+@@ -1065,7 +1070,13 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+       tclistdel(res);
+     }
+   } else if(type == TDBMSISECT){
++    int omax = qrys[0]->max;
++    int oskip = qrys[0]->skip;
++    qrys[0]->max = INT_MAX;
++    qrys[0]->skip = 0;
+     TCLIST *res = tctdbqrysearch(qrys[0]);
++    qrys[0]->max = omax;
++    qrys[0]->skip = oskip;
+     int rnum = TCLISTNUM(res);
+     for(int i = 0; i < rnum; i++){
+       const char *pkbuf;
+@@ -1081,7 +1092,13 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+         tcxstrprintf(qry->hint, "omitted\n");
+         continue;
+       }
++      omax = qry->max;
++      oskip = qry->skip;
++      qry->max = INT_MAX;
++      qry->skip = 0;
+       res = tctdbqrysearch(qry);
++      qry->max = omax;
++      qry->skip = oskip;
+       rnum = TCLISTNUM(res);
+       TCMAP *nset = tcmapnew2(tclmin(TCMAPRNUM(uset), rnum) + 1);
+       for(int j = 0; j < rnum; j++){
+@@ -1096,7 +1113,13 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+       tclistdel(res);
+     }
+   } else if(type == TDBMSDIFF){
++    int omax = qrys[0]->max;
++    int oskip = qrys[0]->skip;
++    qrys[0]->max = INT_MAX;
++    qrys[0]->skip = 0;
+     TCLIST *res = tctdbqrysearch(qrys[0]);
++    qrys[0]->max = omax;
++    qrys[0]->skip = oskip;
+     int rnum = TCLISTNUM(res);
+     for(int i = 0; i < rnum; i++){
+       const char *pkbuf;
+@@ -1112,7 +1135,13 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+         tcxstrprintf(qry->hint, "omitted\n");
+         continue;
+       }
++      omax = qry->max;
++      oskip = qry->skip;
++      qry->max = INT_MAX;
++      qry->skip = 0;
+       res = tctdbqrysearch(qry);
++      qry->max = omax;
++      qry->skip = oskip;
+       rnum = TCLISTNUM(res);
+       for(int j = 0; j < rnum; j++){
+         const char *pkbuf;
+@@ -1123,6 +1152,8 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+       tclistdel(res);
+     }
+   }
++  int max = qrys[0]->max;
++  int skip = qrys[0]->skip;
+   TCLIST *res;
+   if(oname && type == TDBMSUNION){
+     int rnum = TCMAPRNUM(uset);
+@@ -1162,14 +1193,26 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+       break;
+     }
+     if(compar) qsort(keys, rnum, sizeof(*keys), (int (*)(const void *, const void *))compar);
+-    res = tclistnew2(rnum);
+-    for(int i = 0; i < rnum; i++){
++    res = tclistnew2(tclmin(rnum, max));
++    for(int i = skip; max > 0 && i < rnum; i++){
+       key = keys + i;
+       TCLISTPUSH(res, key->kbuf, key->ksiz);
++      max--;
+     }
+     TCFREE(keys);
+   } else {
+-    res = tcmapkeys(uset);
++    res = tclistnew2(tclmin(tcmaprnum(uset), max));
++    tcmapiterinit(uset);
++    const char *pkbuf;
++    int pksiz;
++    while(max > 0 && (pkbuf = tcmapiternext(uset, &pksiz)) != NULL){
++      if(skip > 0){
++        skip--;
++      } else {
++        TCLISTPUSH(res, pkbuf, pksiz);
++        max--;
++      }
++    }
+   }
+   tcmapdel(uset);
+   TCXSTR *hint = tcxstrnew();
+@@ -1191,8 +1234,6 @@ TCLIST *tctdbmetasearch(TDBQRY **qrys, i
+   return res;
+ }
+ 
+-
+-
+ /*************************************************************************************************
+  * features for experts
+  *************************************************************************************************/

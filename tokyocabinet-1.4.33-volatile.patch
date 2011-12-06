@@ -1,0 +1,76 @@
+diff -up tokyocabinet-1.4.33/tcbdb.h.volatile tokyocabinet-1.4.33/tcbdb.h
+--- tokyocabinet-1.4.33/tcbdb.h.volatile	2009-09-04 11:34:50.000000000 +0200
++++ tokyocabinet-1.4.33/tcbdb.h	2010-03-12 13:44:25.809028766 +0100
+@@ -64,18 +64,18 @@ typedef struct {                        
+   uint64_t capnum;                       /* capacity number of records */
+   uint64_t *hist;                        /* history array of visited nodes */
+   int hnum;                              /* number of element of the history array */
+-  uint64_t hleaf;                        /* ID number of the leaf referred by the history */
+-  uint64_t lleaf;                        /* ID number of the last visited leaf */
++  volatile uint64_t hleaf;               /* ID number of the leaf referred by the history */
++  volatile uint64_t lleaf;                        /* ID number of the last visited leaf */
+   bool tran;                             /* whether in the transaction */
+   char *rbopaque;                        /* opaque for rollback */
+-  uint64_t clock;                        /* logical clock */
+-  int64_t cnt_saveleaf;                  /* tesing counter for leaf save times */
+-  int64_t cnt_loadleaf;                  /* tesing counter for leaf load times */
+-  int64_t cnt_killleaf;                  /* tesing counter for leaf kill times */
+-  int64_t cnt_adjleafc;                  /* tesing counter for node cache adjust times */
+-  int64_t cnt_savenode;                  /* tesing counter for node save times */
+-  int64_t cnt_loadnode;                  /* tesing counter for node load times */
+-  int64_t cnt_adjnodec;                  /* tesing counter for node cache adjust times */
++  volatile uint64_t clock;                        /* logical clock */
++  volatile int64_t cnt_saveleaf;                  /* tesing counter for leaf save times */
++  volatile int64_t cnt_loadleaf;                  /* tesing counter for leaf load times */
++  volatile int64_t cnt_killleaf;                  /* tesing counter for leaf kill times */
++  volatile int64_t cnt_adjleafc;                  /* tesing counter for node cache adjust times */
++  volatile int64_t cnt_savenode;                  /* tesing counter for node save times */
++  volatile int64_t cnt_loadnode;                  /* tesing counter for node load times */
++  volatile int64_t cnt_adjnodec;                  /* tesing counter for node cache adjust times */
+ } TCBDB;
+ 
+ enum {                                   /* enumeration for additional flags */
+diff -up tokyocabinet-1.4.33/tchdb.h.volatile tokyocabinet-1.4.33/tchdb.h
+--- tokyocabinet-1.4.33/tchdb.h.volatile	2009-09-04 11:34:50.000000000 +0200
++++ tokyocabinet-1.4.33/tchdb.h	2010-03-12 13:50:15.058034202 +0100
+@@ -91,23 +91,23 @@ typedef struct {                        
+   int walfd;                             /* file descriptor of write ahead logging */
+   uint64_t walend;                       /* end offset of write ahead logging */
+   int dbgfd;                             /* file descriptor for debugging */
+-  int64_t cnt_writerec;                  /* tesing counter for record write times */
+-  int64_t cnt_reuserec;                  /* tesing counter for record reuse times */
+-  int64_t cnt_moverec;                   /* tesing counter for record move times */
+-  int64_t cnt_readrec;                   /* tesing counter for record read times */
+-  int64_t cnt_searchfbp;                 /* tesing counter for FBP search times */
+-  int64_t cnt_insertfbp;                 /* tesing counter for FBP insert times */
+-  int64_t cnt_splicefbp;                 /* tesing counter for FBP splice times */
+-  int64_t cnt_dividefbp;                 /* tesing counter for FBP divide times */
+-  int64_t cnt_mergefbp;                  /* tesing counter for FBP merge times */
+-  int64_t cnt_reducefbp;                 /* tesing counter for FBP reduce times */
+-  int64_t cnt_appenddrp;                 /* tesing counter for DRP append times */
+-  int64_t cnt_deferdrp;                  /* tesing counter for DRP defer times */
+-  int64_t cnt_flushdrp;                  /* tesing counter for DRP flush times */
+-  int64_t cnt_adjrecc;                   /* tesing counter for record cache adjust times */
+-  int64_t cnt_defrag;                    /* tesing counter for defragmentation times */
+-  int64_t cnt_shiftrec;                  /* tesing counter for record shift times */
+-  int64_t cnt_trunc;                     /* tesing counter for truncation times */
++  volatile int64_t cnt_writerec;                  /* tesing counter for record write times */
++  volatile int64_t cnt_reuserec;                  /* tesing counter for record reuse times */
++  volatile int64_t cnt_moverec;                   /* tesing counter for record move times */
++  volatile int64_t cnt_readrec;                   /* tesing counter for record read times */
++  volatile int64_t cnt_searchfbp;                 /* tesing counter for FBP search times */
++  volatile int64_t cnt_insertfbp;                 /* tesing counter for FBP insert times */
++  volatile int64_t cnt_splicefbp;                 /* tesing counter for FBP splice times */
++  volatile int64_t cnt_dividefbp;                 /* tesing counter for FBP divide times */
++  volatile int64_t cnt_mergefbp;                  /* tesing counter for FBP merge times */
++  volatile int64_t cnt_reducefbp;                 /* tesing counter for FBP reduce times */
++  volatile int64_t cnt_appenddrp;                 /* tesing counter for DRP append times */
++  volatile int64_t cnt_deferdrp;                  /* tesing counter for DRP defer times */
++  volatile int64_t cnt_flushdrp;                  /* tesing counter for DRP flush times */
++  volatile int64_t cnt_adjrecc;                   /* tesing counter for record cache adjust times */
++  volatile int64_t cnt_defrag;                    /* tesing counter for defragmentation times */
++  volatile int64_t cnt_shiftrec;                  /* tesing counter for record shift times */
++  volatile int64_t cnt_trunc;                     /* tesing counter for truncation times */
+ } TCHDB;
+ 
+ enum {                                   /* enumeration for additional flags */

@@ -1,0 +1,32 @@
+diff -up tokyocabinet-1.4.33/tcfdb.c.memleak tokyocabinet-1.4.33/tcfdb.c
+--- tokyocabinet-1.4.33/tcfdb.c.memleak	2010-03-12 14:37:21.633033611 +0100
++++ tokyocabinet-1.4.33/tcfdb.c	2010-03-12 14:39:01.901034371 +0100
+@@ -2443,7 +2443,11 @@ static bool tcfdbvanishimpl(TCFDB *fdb){
+   int omode = fdb->omode;
+   bool err = false;
+   if(!tcfdbcloseimpl(fdb)) err = true;
+-  if(!tcfdbopenimpl(fdb, path, FDBOTRUNC | omode)) err = true;
++  if(!tcfdbopenimpl(fdb, path, FDBOTRUNC | omode)){
++    tcpathunlock(fdb->rpath);
++    TCFREE(fdb->rpath);
++    err = true;
++  }
+   TCFREE(path);
+   return !err;
+ }
+diff -up tokyocabinet-1.4.33/tchdb.c.memleak tokyocabinet-1.4.33/tchdb.c
+--- tokyocabinet-1.4.33/tchdb.c.memleak	2010-03-12 14:39:33.019028624 +0100
++++ tokyocabinet-1.4.33/tchdb.c	2010-03-12 14:40:43.678033985 +0100
+@@ -4604,7 +4604,11 @@ static bool tchdbvanishimpl(TCHDB *hdb){
+   int omode = hdb->omode;
+   bool err = false;
+   if(!tchdbcloseimpl(hdb)) err = true;
+-  if(!tchdbopenimpl(hdb, path, HDBOTRUNC | omode)) err = true;
++  if(!tchdbopenimpl(hdb, path, HDBOTRUNC | omode)){
++    tcpathunlock(hdb->rpath);
++    TCFREE(hdb->rpath);
++    err = true;
++  }
+   TCFREE(path);
+   return !err;
+ }
